@@ -1,0 +1,115 @@
+1.4.1
+ 
+def ukupno(sati,satnica):
+    ukupno=sati*satnica
+    return ukupno
+ 
+def main():
+    sati = float(input("Radni sati:"))
+    satnica = float(input("Eura/h:"))
+ 
+    placa = ukupno(sati,satnica)
+ 
+    print("Ukupno:",placa,"eura")
+ 
+if __name__ == "__main__":
+    main()
+ 
+"""
+ 
+"""
+#1.4.2
+ 
+def izracunaj_ocjenu(ocjena):
+    if ocjena >= 0.9:
+        return 'A'
+    elif ocjena >= 0.8:
+        return 'B'
+    elif ocjena >= 0.7:
+        return 'C'
+    elif ocjena >= 0.6:
+        return 'D'
+    elif ocjena < 0.6:
+        return 'F'
+ 
+def main():
+    try:
+        ocjena= float(input("Unesite ocjenu izmedu 0.0 i 1.0:"))
+        if ocjena < 0.0 or ocjena > 1.0:
+            print("Ocjena je izvan uvjeta")
+        else:
+            grade = izracunaj_ocjenu(ocjena)
+            print("Ocjena:", grade)
+    except ValueError:
+        print("Neispravan unos. Unesite broj")
+ 
+ 
+if __name__ == "__main__":
+    main()
+ 
+"""
+"""
+#1.4.3
+ 
+def upisi_brojeve():
+    brojevi = []
+    while True:
+        try:
+            upis_brojeva = input("Unesite broj (za kraj upisi Done:")
+ 
+            if upis_brojeva.lower() == 'done':
+                break
+ 
+            broj=float(upis_brojeva)
+            brojevi.append(broj)
+        except ValueError:
+            print("Neispravan unos.Molim unesite broj")
+    return brojevi
+ 
+def main():
+    brojevi = upisi_brojeve()
+ 
+    if not brojevi:
+        print("Niste upisali nijedan broj")
+        return
+ 
+    count = len(brojevi)
+    average = float(sum(brojevi)) / count
+    minimum = min(brojevi)
+    maximum = max(brojevi)
+ 
+    sortirani_brojevi = sorted(brojevi)
+    print("Sortirana lista", sortirani_brojevi)
+    print("Prosječna vrijednost:", average)
+    print("Minimalna vrijednost:", minimum)
+    print("Maksimalna vrijednost:", maximum)
+ 
+if __name__ == "__main__":
+    main()
+ 
+"""
+ 
+#1.4.4
+ 
+file = open('song.txt')
+ 
+words = {}
+count = 0
+ 
+ 
+for line in file:
+    line =line.rstrip()
+    line=line.split()
+    for word in line:
+        word=word.lower().strip('!.?,')
+        if word not in words:
+             words[word]=1
+        else:
+           words[word]+=1
+ 
+for word,value in words.items():
+    if value == 1:
+        print(word)
+        count=count+1
+ 
+print(count)
