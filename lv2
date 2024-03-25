@@ -1,0 +1,129 @@
+import numpy as np
+import matplotlib.pyplot as plt
+ 
+roof_top = np.array([[0, 2], [1, 3], [2, 2]])
+roof_bottom = np.array([[0, 0], [2, 0]])
+roof_side = np.array([[0, 0], [1, 1], [2, 0]])
+house_base = np.array([[0, 0], [0, 2], [2, 2], [2, 0], [0, 0]])
+ 
+plt.plot(roof_top[:,0], roof_top[:,1], color='blue')  
+plt.plot(roof_bottom[:,0], roof_bottom[:,1], color='blue') 
+plt.plot(roof_side[:,0], roof_side[:,1], color='blue')
+plt.plot(house_base[:,0], house_base[:,1], color='red')
+ 
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.title('Kucica')
+plt.axis('equal')
+plt.grid(True)
+plt.show()
+ 
+ 
+import numpy as np
+import matplotlib.pyplot as plt
+ 
+data = np.loadtxt('data.csv', delimiter=',', skiprows=1)
+ 
+# a)
+broj_osoba = data.shape[0]
+print("Broj mjerenih osoba:", broj_osoba)
+ 
+# b)
+visina = data[:, 1]
+masa = data[:, 2]
+plt.figure(figsize=(8, 6))
+plt.scatter(visina, masa, color='blue', alpha=0.7)
+plt.xlabel('Visina (cm)')
+plt.ylabel('Masa (kg)')
+plt.title('Odnos visine i mase')
+plt.grid(True)
+plt.show()
+ 
+# c)
+visina_pedest = data[::50, 1]  
+masa_pedest = data[::50, 2]  
+plt.figure(figsize=(8, 6))
+plt.scatter(visina_pedest, masa_pedest, color='red', alpha=0.7)
+plt.xlabel('Visina (cm)')
+plt.ylabel('Masa (kg)')
+plt.title('Odnos visine i mase za svaku pedesetu osobu')
+plt.grid(True)
+plt.show()
+ 
+# d)
+min_visina = np.min(visina)
+max_visina = np.max(visina)
+prosjecna_visina = np.mean(visina)
+print("Minimalna visina:", min_visina, "cm")
+print("Maksimalna visina:", max_visina, "cm")
+print("Prosječna visina:", prosjecna_visina, "cm")
+ 
+# e)
+muski = data[data[:, 0] == 1]  
+visina_muski = muski[:, 1]
+min_visina_muski = np.min(visina_muski)
+max_visina_muski = np.max(visina_muski)
+prosjecna_visina_muski = np.mean(visina_muski)
+print("\nZa muškarce:")
+print("Minimalna visina:", min_visina_muski, "cm")
+print("Maksimalna visina:", max_visina_muski, "cm")
+print("Prosječna visina:", prosjecna_visina_muski, "cm")
+ 
+zenski = data[data[:, 0] == 0] 
+visina_zenski = zenski[:, 1]
+min_visina_zenski = np.min(visina_zenski)
+max_visina_zenski = np.max(visina_zenski)
+prosjecna_visina_zenski = np.mean(visina_zenski)
+print("\nZa žene:")
+print("Minimalna visina:", min_visina_zenski, "cm")
+print("Maksimalna visina:", max_visina_zenski, "cm")
+print("Prosječna visina:", prosjecna_visina_zenski, "cm")
+ 
+ 
+ 
+import numpy as np
+import matplotlib.pyplot as plt
+ 
+img = plt.imread("road.jpg")
+plt.figure()
+plt.imshow(img)
+plt.title("Originalna slika")
+plt.show()
+ 
+plt.imshow(img,alpha=0.3)
+plt.title("Posvijetljena slika")
+plt.show()
+ 
+selected_part1 = img[:, 200:400]
+plt.figure()
+plt.imshow(selected_part1)
+plt.title("Odabrani dio slike")
+plt.show()
+ 
+rotated_img = np.rot90(img)
+plt.figure()
+plt.imshow(rotated_img)
+plt.title("Rotirana slika")
+plt.show()
+ 
+flipped_img = np.fliplr(img)
+plt.figure()
+plt.imshow(flipped_img)
+plt.title("Zrcaljena slika")
+plt.show()
+ 
+ 
+import numpy as np
+import matplotlib.pyplot as plt
+ 
+black_square = np.zeros((50, 50))
+white_square = np.ones((50, 50))
+inverted_black_square = np.logical_not(black_square)
+inverted_white_square = np.logical_not(white_square)
+top_row = np.hstack((inverted_black_square, inverted_white_square))
+bottom_row = np.hstack((inverted_white_square, inverted_black_square))
+image = np.vstack((top_row, bottom_row))
+ 
+plt.imshow(image, cmap='binary')
+plt.axis('off')
+plt.show()
