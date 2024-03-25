@@ -1,0 +1,74 @@
+import pandas as pd
+import numpy as np
+ 
+data = pd.read_csv('data_C02_emission.csv')
+ 
+#a)
+ 
+print("Broj mjerenja:", len(data))
+print("Tipovi podataka:", data.dtypes)
+data.drop_duplicates(inplace=True)
+ 
+categorical_cols = ['Make', 'Model', 'Vehicle Class', 'Transmission', 'Fuel Type']
+data[categorical_cols] = data[categorical_cols].astype('category')
+ 
+data.dropna(inplace=True)
+ 
+#b)
+ 
+max_consumption = data.nlargest(3,'Fuel Consumption City (L/100km)')
+min_consumtion = data.nsmallest(3,'Fuel Consumption City (L/100km)')
+print("\nNajveća gradska potrošnja:")
+print(max_consumption[['Make', 'Model', 'Fuel Consumption City (L/100km)']])
+print("\nNajmanja gradska potrošnja:")
+print(min_consumtion[['Make', 'Model', 'Fuel Consumption City (L/100km)']])
+ 
+#c)
+ 
+filtered_data = data[(data['Engine Size (L)'] >= 2.5) & (data['Engine Size (L)'] <= 3.5)]
+print("\nBroj vozila s veličinom motora između 2.5 i 3.5 L:", len(filtered_data))
+print("Prosječna CO2 emisija plinova za ova vozila:", filtered_data['CO2 Emissions (g/km)'].mean())
+ 
+#d)
+ 
+audi_data = data[data['Make'] == 'Audi']
+print("\nBroj mjerenja za vozila proizvođača Audi:", len(data))
+audi_4cyl_data = audi_data[audi_data['Cylinders'] == 4]
+print("Prosječna emisija CO2 plinova za vozila Audi s 4 cilindra:", audi_4cyl_data['CO2 Emissions (g/km)'].mean())
+ 
+#e)
+ 
+cylinder_counts = data['Cylinders'].value_counts()
+print("\nBroj vozila po broju cilindara:")
+print(cylinder_counts)
+for cylinders in cylinder_counts.index:
+    mean_co2_emission = data[data['Cylinders'] == cylinders]['CO2 Emissions (g/km)'].mean()
+    print(f"Prosječna emisija CO2 plinova za vozila s {cylinders} cilindra: {mean_co2_emission}")
+ 
+#f)
+ 
+diesel_avg_city = data[data['Fuel Type'] == 'D'].groupby('Fuel Type')['Fuel Consumption City (L/100km)'].mean().values[0]
+gasoline_avg_city = data[data['Fuel Type'] == 'X'].groupby('Fuel Type')['Fuel Consumption City (L/100km)'].mean().values[0]
+diesel_median_city = data[data['Fuel Type'] == 'D']['Fuel Consumption City (L/100km)'].median()
+gasoline_median_city = data[data['Fuel Type'] == 'X']['Fuel Consumption City (L/100km)'].median()
+print("\nProsječna gradska potrošnja za vozila koja koriste dizel:", diesel_avg_city)
+print("Prosječna gradska potrošnja za vozila koja koriste regularni benzin:", gasoline_avg_city)
+print("Medijalna gradska potrošnja za vozila koja koriste dizel:", diesel_median_city)
+print("Medijalna gradska potrošnja za vozila koja koriste regularni benzin:", gasoline_median_city)
+ 
+#g)
+diesel_4cyl_data = data[(data['Fuel Type'] == 'D') & (data['Cylinders'] == 4)]
+max_city_consumption = diesel_4cyl_data['Fuel Consumption City (L/100km)'].max()
+vehicle_with_max_consumption = diesel_4cyl_data[diesel_4cyl_data['Fuel Consumption City (L/100km)'] == max_city_consumption]
+print("\nVozilo s 4 cilindra koje koristi dizelski motor s najvećom gradskom potrošnjom goriva:")
+print(vehicle_with_max_consumption[['Make', 'Model', 'Fuel Consumption City (L/100km)']])
+ 
+ 
+#h)
+manual_trans_count = data[data['Transmission'].str.contains('Manual', case=False)]['Transmission'].count()
+print("\nBroj vozila s ručnim mjenjačem:", manual_trans_count)
+ 
+#i)
+correlation_matrix = data.corr()
+print("\nMatrica korelacije:")
+print(correlation_matrix)
