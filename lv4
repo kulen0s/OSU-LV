@@ -1,1 +1,113 @@
 
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+
+# Učitavanje podataka
+df = pd.read_csv("data_C02_emission.csv")
+
+# a) Odabir željenih numeričkih veličina i podjela podataka na skup za učenje i testiranje
+numericki_stupci = ['Engine Size (L)', 'Cylinders', 'Fuel Consumption City (L/100km)', 'Fuel Consumption Hwy (L/100km)']
+X = df[numericki_stupci]
+y = df['CO2 Emissions (g/km)']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# b) Prikaz ovisnosti emisije CO2 plinova o jednoj numeričkoj veličini
+plt.scatter(X_train.iloc[:, 0], y_train, color='blue', label='Skup za učenje')
+plt.scatter(X_test.iloc[:, 0], y_test, color='red', label='Skup za testiranje')
+plt.xlabel(numericki_stupci[0])
+plt.ylabel('CO2 Emissions (g/km)')
+plt.legend()
+plt.title('Ovisnost emisije CO2 plinova o Engine Size')
+plt.show()
+
+# c) Standardizacija ulaznih veličina
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Histogrami prije i nakon skaliranja
+plt.hist(X_train.iloc[:, 0], bins=20, color='blue', alpha=0.5, label='Prije skaliranja')
+plt.hist(X_train_scaled[:, 0], bins=20, color='red', alpha=0.5, label='Nakon skaliranja')
+plt.xlabel(numericki_stupci[0])
+plt.ylabel('Broj uzoraka')
+plt.legend()
+plt.title('Histogram ulazne veličine prije i nakon skaliranja')
+plt.show()
+
+# d) Izgradnja linearnog regresijskog modela
+model = LinearRegression()
+model.fit(X_train_scaled, y_train)
+print("\nd) Parametri linearnog regresijskog modela:")
+for i, col in enumerate(numericki_stupci):
+    print(f"   {col}: {model.coef_[i]}")
+print("   Intercept:", model.intercept_)
+
+# e) Procjena izlazne veličine na temelju ulaznih veličina skupa za testiranje
+y_pred = model.predict(X_test_scaled)
+plt.scatter(y_test, y_pred)
+plt.xlabel('Stvarne vrijednosti CO2 Emissions (g/km)')
+plt.ylabel('Procijenjene vrijednosti CO2 Emissions (g/km)')
+plt.title('Procjena izlazne veličine na temelju ulaznih veličina')
+plt.show()
+
+# f) Vrednovanje modela
+mse = mean_squared_error(y_test, y_pred)
+mae = mean_absolute_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+print("\nf) Vrijednosti regresijskih metrika na skupu podataka za testiranje:")
+print("   Mean Squared Error:", mse)
+print("   Mean Absolute Error:", mae)
+print("   R-squared:", r2)
+
+# g) Promjena broja ulaznih veličina
+# Možete eksperimentirati s različitim kombinacijama numeričkih stupaca i promatrati kako se mijenjaju vrijednosti metrika.
+
+
+
+
+
+
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.metrics import mean_absolute_error
+
+# Učitavanje podataka
+df = pd.read_csv("data_C02_emission.csv")
+
+# Odabir željenih numeričkih i kategoričkih veličina
+numericki_stupci = ['Engine Size (L)', 'Cylinders', 'Fuel Consumption City (L/100km)', 'Fuel Consumption Hwy (L/100km)']
+kategoricki_stupci = ['Fuel Type']
+X_numericki = df[numericki_stupci]
+X_kategoricki = df[kategoricki_stupci]
+y = df['CO2 Emissions (g/km)']
+
+# Podjela podataka na skup za učenje i testiranje
+X_train, X_test, y_train, y_test = train_test_split(X_numericki, y, test_size=0.2, random_state=42)
+
+# Definiranje transformatora za kategoričke stupce
+column_transformer = ColumnTransformer([('encoder', OneHotEncoder(), kategoricki_stupci)], remainder='passthrough')
+
+# Kreiranje i treniranje modela
+model = Pipeline([('preprocessor', column_transformer), ('regressor', LinearRegression())])
+model.fit(X_train, y_train)
+
+# Procjena izlazne veličine na temelju ulaznih veličina skupa za testiranje
+y_pred = model.predict(X_test)
+
+# Izračun maksimalne pogreške u procjeni emisije CO2 plinova u g/km
+max_pogreska = max(abs(y_test - y_pred))
+print("Maksimalna pogreška u procjeni emisije CO2 plinova u g/km:", max_pogreska)
+
+# Identifikacija modela vozila koji je uzrok maksimalne pogreške
+indeks_max_pogreske = abs(y_test - y_pred).idxmax()
+model_vozila = df.loc[indeks_max_pogreske, 'Make'] + ' ' + df.loc[indeks_max_pogreske, 'Model']
+print("Model vozila koji je uzrok maksimalne pogreške:", model_vozila)
