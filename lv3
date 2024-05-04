@@ -1,74 +1,199 @@
-import pandas as pd
 import numpy as np
- 
-data = pd.read_csv('data_C02_emission.csv')
- 
-#a)
- 
+import pandas as pd
+
+data=pd.read_csv("data_C02_emission.csv")
+
+#a) 
+#Koliko mjerenja sadrži DataFrame
 print("Broj mjerenja:", len(data))
+#Kojeg je tipa svaka veličina
 print("Tipovi podataka:", data.dtypes)
+#Postoje li izostale ili duplicirane vrijednosti
 data.drop_duplicates(inplace=True)
- 
+data.dropna(inplace=True)
+
 categorical_cols = ['Make', 'Model', 'Vehicle Class', 'Transmission', 'Fuel Type']
 data[categorical_cols] = data[categorical_cols].astype('category')
- 
-data.dropna(inplace=True)
- 
+
+
 #b)
- 
+#Tri automobila s najvecom potrosnjom i s najmanjom
 max_consumption = data.nlargest(3,'Fuel Consumption City (L/100km)')
 min_consumtion = data.nsmallest(3,'Fuel Consumption City (L/100km)')
 print("\nNajveća gradska potrošnja:")
 print(max_consumption[['Make', 'Model', 'Fuel Consumption City (L/100km)']])
 print("\nNajmanja gradska potrošnja:")
 print(min_consumtion[['Make', 'Model', 'Fuel Consumption City (L/100km)']])
- 
+
 #c)
- 
-filtered_data = data[(data['Engine Size (L)'] >= 2.5) & (data['Engine Size (L)'] <= 3.5)]
-print("\nBroj vozila s veličinom motora između 2.5 i 3.5 L:", len(filtered_data))
-print("Prosječna CO2 emisija plinova za ova vozila:", filtered_data['CO2 Emissions (g/km)'].mean())
- 
+engine_size = data[(data["Engine Size (L)"] >= 2.5) & (data["Engine Size (L)"] <= 3.5)]
+print("\nBroj vozila s veličinom motora izmedu 2.5 i 3.5:", len(engine_size))
+print("\nProsjecna CO2 emisija je:", engine_size["CO2 Emissions (g/km)"].mean())
+
+
 #d)
- 
-audi_data = data[data['Make'] == 'Audi']
-print("\nBroj mjerenja za vozila proizvođača Audi:", len(data))
-audi_4cyl_data = audi_data[audi_data['Cylinders'] == 4]
-print("Prosječna emisija CO2 plinova za vozila Audi s 4 cilindra:", audi_4cyl_data['CO2 Emissions (g/km)'].mean())
- 
-#e)
- 
+audi_data = data[data["Make"]=="Audi"]
+print("\nBroj mjerenja za vozila Audi:", len(audi_data))
+audi_4cly_data = audi_data[data["Cylinders"]==4]
+print("\nProsjecna emisija CO2 Audi automobila s 4 cilindra:",audi_4cly_data["CO2 Emissions (g/km)"].mean())
+
+#e) 
 cylinder_counts = data['Cylinders'].value_counts()
 print("\nBroj vozila po broju cilindara:")
 print(cylinder_counts)
 for cylinders in cylinder_counts.index:
     mean_co2_emission = data[data['Cylinders'] == cylinders]['CO2 Emissions (g/km)'].mean()
-    print(f"Prosječna emisija CO2 plinova za vozila s {cylinders} cilindra: {mean_co2_emission}")
- 
+    print("Prosječna emisija CO2 plinova za vozila s {cylinders} cilindra: {mean_co2_emission}")
+
 #f)
- 
-diesel_avg_city = data[data['Fuel Type'] == 'D'].groupby('Fuel Type')['Fuel Consumption City (L/100km)'].mean().values[0]
-gasoline_avg_city = data[data['Fuel Type'] == 'X'].groupby('Fuel Type')['Fuel Consumption City (L/100km)'].mean().values[0]
-diesel_median_city = data[data['Fuel Type'] == 'D']['Fuel Consumption City (L/100km)'].median()
-gasoline_median_city = data[data['Fuel Type'] == 'X']['Fuel Consumption City (L/100km)'].median()
-print("\nProsječna gradska potrošnja za vozila koja koriste dizel:", diesel_avg_city)
-print("Prosječna gradska potrošnja za vozila koja koriste regularni benzin:", gasoline_avg_city)
-print("Medijalna gradska potrošnja za vozila koja koriste dizel:", diesel_median_city)
-print("Medijalna gradska potrošnja za vozila koja koriste regularni benzin:", gasoline_median_city)
- 
+
+diesel_data =  data[data["Fuel Type"]=="D"]
+petrol_data = data[data["Fuel Type"]=="X"]
+
+print("\nProsjecna gradska potrosnja dizel automobila:", diesel_data["Fuel Consumption City (L/100km)"].mean())
+print("\nProsjecna gradska potrosnja benzinskih automobila:", petrol_data["Fuel Consumption City (L/100km)"].mean())
+
+print("\nProsjecna gradska potrosnja dizel automobila:", diesel_data["Fuel Consumption City (L/100km)"].median())
+print("\nProsjecna gradska potrosnja benzinskih automobila:", petrol_data["Fuel Consumption City (L/100km)"].median())
+
 #g)
+
+
 diesel_4cyl_data = data[(data['Fuel Type'] == 'D') & (data['Cylinders'] == 4)]
 max_city_consumption = diesel_4cyl_data['Fuel Consumption City (L/100km)'].max()
 vehicle_with_max_consumption = diesel_4cyl_data[diesel_4cyl_data['Fuel Consumption City (L/100km)'] == max_city_consumption]
 print("\nVozilo s 4 cilindra koje koristi dizelski motor s najvećom gradskom potrošnjom goriva:")
 print(vehicle_with_max_consumption[['Make', 'Model', 'Fuel Consumption City (L/100km)']])
  
- 
-#h)
-manual_trans_count = data[data['Transmission'].str.contains('Manual', case=False)]['Transmission'].count()
-print("\nBroj vozila s ručnim mjenjačem:", manual_trans_count)
- 
+
+ #h)
+
+rucni_mjenjac_count = data[data['Transmission'].str.startswith('M')].shape[0]
+print("Broj vozila s ručnim mjenjačem:", rucni_mjenjac_count)
+
 #i)
-correlation_matrix = data.corr()
-print("\nMatrica korelacije:")
-print(correlation_matrix)
+print(data.corr(numeric_only=True))
+
+
+
+
+# 3.4.2
+"""
+Napišite programski kod koji ´ce prikazati sljede´ce vizualizacije:
+a) Pomo´cu histograma prikažite emisiju C02 plinova. Komentirajte dobiveni prikaz.
+b) Pomo´cu dijagrama raspršenja prikažite odnos izme ¯ du gradske potrošnje goriva i emisije
+C02 plinova. Komentirajte dobiveni prikaz. Kako biste bolje razumjeli odnose izme ¯ du
+veliˇcina, obojite toˇckice na dijagramu raspršenja s obzirom na tip goriva.
+c) Pomo´cu kutijastog dijagrama prikažite razdiobu izvangradske potrošnje s obzirom na tip
+goriva. Primje´cujete li grubu mjernu pogrešku u podacima?
+d) Pomo´cu stupˇcastog dijagrama prikažite broj vozila po tipu goriva. Koristite metodu
+groupby.
+e) Pomo´cu stupˇcastog grafa prikažite na istoj slici prosjeˇcnu C02 emisiju vozila s obzirom na
+broj cilindara.
+"""
+
+
+import matplotlib.pyplot as plt
+
+# a) Histogram emisije CO2 plinova
+plt.figure(figsize=(8, 6))
+plt.hist(data['CO2 Emissions (g/km)'], bins=20, color='skyblue', edgecolor='black')
+plt.xlabel('CO2 Emissions (g/km)')
+plt.ylabel('Broj vozila')
+plt.title('Histogram emisije CO2 plinova')
+plt.grid(True)
+plt.show()
+
+# b) Dijagram raspršenja: Gradska potrošnja goriva vs. Emisija CO2 plinova
+plt.figure(figsize=(8, 6))
+for fuel_type in data['Fuel Type'].unique():
+    plt.scatter(data[data['Fuel Type'] == fuel_type]['Fuel Consumption City (L/100km)'],
+                data[data['Fuel Type'] == fuel_type]['CO2 Emissions (g/km)'],
+                label=fuel_type)
+plt.xlabel('Gradska potrošnja goriva (L/100km)')
+plt.ylabel('CO2 Emissions (g/km)')
+plt.title('Odnos između gradske potrošnje goriva i emisije CO2 plinova')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# c) Kutijasti dijagram: Razdioba izvangradske potrošnje goriva po tipu goriva
+plt.figure(figsize=(8, 6))
+data.boxplot(column='Fuel Consumption Hwy (L/100km)', by='Fuel Type')
+plt.xlabel('Tip goriva')
+plt.ylabel('Izvangradska potrošnja goriva (L/100km)')
+plt.title('Razdioba izvangradske potrošnje goriva po tipu goriva')
+plt.grid(True)
+plt.show()
+
+# d) Stupčasti dijagram: Broj vozila po tipu goriva
+plt.figure(figsize=(8, 6))
+data.groupby('Fuel Type').size().plot(kind='bar', color='lightgreen')
+plt.xlabel('Tip goriva')
+plt.ylabel('Broj vozila')
+plt.title('Broj vozila po tipu goriva')
+plt.grid(True)
+plt.show()
+
+# e) Stupčasti graf: Prosječna CO2 emisija vozila s obzirom na broj cilindara
+plt.figure(figsize=(8, 6))
+data.groupby('Cylinders')['CO2 Emissions (g/km)'].mean().plot(kind='bar', color='salmon')
+plt.xlabel('Broj cilindara')
+plt.ylabel('Prosječna CO2 emisija (g/km)')
+plt.title('Prosječna CO2 emisija vozila po broju cilindara')
+plt.grid(True)
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+pd.read_csv("data_C02_emission.csv"): Ova funkcija se koristi za učitavanje podataka iz CSV datoteke u DataFrame. 
+Parametar data_C02_emission.csv je naziv datoteke koja se učitava.
+plt.figure(figsize=(8, 6)): Ova funkcija kreira novu sliku (grafikon) za prikazivanje vizualizacija. 
+Parametar figsize=(8, 6) postavlja veličinu slike na 8x6 inča.
+plt.hist(data['CO2 Emissions (g/km)'], bins=20, color='skyblue', edgecolor='black'): 
+Ova funkcija crta histogram emisije CO2 plinova. Parametar data['CO2 Emissions (g/km)'] predstavlja podatke koje 
+želimo prikazati, bins=20 određuje broj stupnjeva (bins) u histogramu, color='skyblue' postavlja boju histograma 
+na svijetloplavu, a edgecolor='black' postavlja boju rubova histograma na crnu.
+plt.scatter(data[data['Fuel Type'] == fuel_type]['Fuel Consumption City (L/100km)'],
+data[data['Fuel Type'] == fuel_type]['CO2 Emissions (g/km)'], label=fuel_type): 
+Ova funkcija crta dijagram raspršenja za odnos između gradske potrošnje goriva i emisije CO2 plinova za 
+svaki tip goriva. Parametri data[data['Fuel Type'] == fuel_type]['Fuel Consumption City (L/100km)'] 
+i data[data['Fuel Type'] == fuel_type]['CO2 Emissions (g/km)'] predstavljaju podatke za x i y osi dijagrama 
+raspršenja, dok label=fuel_type postavlja oznaku za svaki tip goriva.
+data.boxplot(column='Fuel Consumption Hwy (L/100km)', by='Fuel Type'): Ova funkcija crta kutijasti dijagram koji prikazuje
+ razdiobu izvangradske potrošnje goriva po tipu goriva. Parametri column='Fuel Consumption Hwy (L/100km)' 
+ i by='Fuel Type' određuju stupac po kojem se dijagram razdiobava i stupac po kojem se dijagram grupira.
+data.groupby('Fuel Type').size().plot(kind='bar', color='lightgreen'): Ova funkcija grupira podatke prema tipu goriva,
+ broji broj podataka u svakoj grupi i zatim crta stupčasti dijagram koji prikazuje broj vozila po tipu goriva. 
+ Parametar kind='bar' određuje vrstu dijagrama (stupčasti), dok color='lightgreen' postavlja boju stupaca na svijetlozelenu.
+data.groupby('Cylinders')['CO2 Emissions (g/km)'].mean().plot(kind='bar', color='salmon'): Ova funkcija grupira podatke 
+prema broju cilindara, izračunava prosječnu emisiju CO2 plinova za svaku grupu i zatim crta stupčasti dijagram koji 
+prikazuje prosječnu emisiju CO2 plinova po broju cilindara. Parametar kind='bar' određuje vrstu dijagrama (stupčasti), 
+dok color='salmon' postavlja boju stupaca na losos boju.
+"""
