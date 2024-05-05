@@ -1,1 +1,125 @@
+"""
+1. **Slojevi CNN mreže:**
+   CNN mreža u skripti sastoji se od sljedećih slojeva:
+    konvolucijskih slojeva, slojeva sažimanja, 
+    flatten sloja i potpuno povezanih slojeva
+
+3. **Analiza krivulja točnosti i gubitka:**
+   - Tijekom učenja mreže primjećujemo kako se točnost klasifikacije na skupu za učenje postupno povećava.
+   - Istovremeno, gubitak na skupu za učenje smanjuje se tijekom epoha, što sugerira da se model prilagođava podacima.
+   - Na skupu za validaciju također primjećujemo porast točnosti i smanjenje gubitka, što ukazuje na to da model dobro generalizira na neviđene podatke.
+   - Konačna točnost na skupu podataka za testiranje je : 73.32
+
+9.4.2
+    Utjecaj dropout slojeva na performanse mreže može se pratiti kroz promjene u točnosti i gubitku tijekom učenja.
+    Očekuje se da će dropout slojevi smanjiti tendenciju modela za pretjerano prilagođavanje podacima za učenje, 
+    što bi trebalo rezultirati boljim generalizacijskim sposobnostima modela na neviđenim podacima. 
+    Kroz promjene u točnosti na skupu za učenje,validaciju i testiranje možemo procijeniti utjecaj dropout slojeva na 
+    performanse mreže.
+
+
+9.4.3.
+    1. Ako koristite jako veliku ili jako malu veličinu serije (batch size), to može imati različite utjecaje na proces učenja:
+
+   - **Jako velika veličina serije**: Može dovesti do sporijeg napretka u učenju jer model koristi manje ažuriranja 
+   težina u svakoj epohi. Također, velike serije mogu zauzeti više memorije i usporiti učenje.
+   
+   - **Jako mala veličina serije**: Može dovesti do nestabilnosti u učenju, jer model dobiva ažuriranja težina na 
+   temelju malog broja uzoraka, što može rezultirati velikim fluktuacijama u gradijentima i težinama. 
+   Također, mala veličina serije može rezultirati bržim učenjem na GPU-ima, ali može biti manje učinkovita na CPU-ima.
+
+    2. Ako koristite jako malu ili jako veliku vrijednost stope učenja: learning rate
+
+   - **Jako mala stopa učenja**: Može rezultirati sporim ili blokiranim napretkom u učenju, 
+   jer modelu treba više vremena za konvergenciju prema optimalnim težinama. 
+   Također, mala stopa učenja može rezultirati zatvaranjem u lokalnim minimumima ili ravne dionice funkcije gubitka.
+   
+   - **Jako velika stopa učenja**: Može dovesti do oscilacija ili divergencije učenja, jer veliki koraci gradijenta 
+   mogu prevelike promjene u težinama, što otežava konvergenciju modela. Također, velika stopa učenja može 
+   rezultirati preskakanjem optimalnih rješenja ili "preletavanjem" minimuma funkcije gubitka.
+
+    3. Ako izbacite određene slojeve iz mreže kako biste dobili manju mrežu: 
+
+   - Izostavljanje određenih slojeva iz mreže može dovesti do gubitka sposobnosti modela da nauči 
+   složene uzorke ili značajke iz podataka. To može rezultirati smanjenjem performansi modela, 
+   posebno ako su ti slojevi ključni za predstavljanje određenih karakteristika ulaznih podataka.
+
+    4. Ako za 50% smanjite veličinu skupa za učenje:
+
+   - Smanjenje veličine skupa za učenje može rezultirati smanjenjem općeg kapaciteta modela za generalizaciju, 
+   jer modelu nedostaje raznolikost u podacima na kojima se uči. To može donijeti to smanjenja točnosti na testnom 
+   skupu podataka
+
+"""
+
+
+import numpy as np
+from tensorflow import keras
+from keras import layers
+from tensorflow.keras.datasets import cifar10
+from keras.utils import to_categorical
+from matplotlib import pyplot as plt
+from keras.callbacks import EarlyStopping
+
+
+# ucitaj CIFAR-10 podatkovni skup
+(X_train, y_train), (X_test, y_test) = cifar10.load_data()
+
+
+# prikazi 9 slika iz skupa za ucenje
+plt.figure()
+for i in range(9):
+    plt.subplot(330 + 1 + i)
+    plt.xticks([]),plt.yticks([])
+    plt.imshow(X_train[i])
+
+plt.show()
+
+
+# pripremi podatke (skaliraj ih na raspon [0,1]])
+X_train_n = X_train.astype('float32')/ 255.0
+X_test_n = X_test.astype('float32')/ 255.0
+
+# 1-od-K kodiranje
+y_train = to_categorical(y_train, dtype ="uint8")
+y_test = to_categorical(y_test, dtype ="uint8")
+
+# CNN mreza
+model = keras.Sequential()
+model.add(layers.Input(shape=(32, 32, 3)))
+model.add(layers.Conv2D(filters=32, kernel_size=(3, 3), activation='relu', padding='same'))
+model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+model.add(layers.Conv2D(filters=64, kernel_size=(3, 3), activation='relu', padding='same'))
+model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+model.add(layers.Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same'))
+model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+model.add(layers.Flatten())
+model.add(layers.Dense(500, activation='relu'))
+model.add(layers.Dropout(0.3))  # Dodani dropout sloj
+model.add(layers.Dense(10, activation='softmax'))
+
+model.summary()
+
+
+# definiraj listu s funkcijama povratnog poziva
+my_callbacks = [
+    keras.callbacks.EarlyStopping(monitor="val_loss", patience=5, verbose=1),# Definiraj funkciju povratnog poziva za rano zaustavljanje
+    keras.callbacks.TensorBoard(log_dir = 'logs/cnn',update_freq = 100)
+]
+
+model.compile(optimizer='adam',
+                loss='categorical_crossentropy',
+                metrics=['accuracy'])
+
+model.fit(X_train_n,
+            y_train,
+            epochs = 40,
+            batch_size = 64,
+            callbacks = my_callbacks,
+            validation_split = 0.1)
+
+
+score = model.evaluate(X_test_n, y_test, verbose=0)
+print(f'Tocnost na testnom skupu podataka: {100.0*score[1]:.2f}')
+
 
